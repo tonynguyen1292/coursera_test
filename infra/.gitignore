@@ -1,0 +1,18 @@
+# Scoped to infra/ only, the same way the Unity prototype carries its own.
+# The root .gitignore is left alone.
+
+# State. Terraform writes resource metadata -- and anything a provider marks
+# sensitive -- into state in plaintext. It must never be committed.
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+
+# Provider plugins and the local working directory.
+.terraform/
+
+# Holds a personal email address for the budget alarm. The .example template
+# is tracked in its place.
+terraform.tfvars
+!terraform.tfvars.example

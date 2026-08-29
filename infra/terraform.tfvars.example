@@ -1,0 +1,22 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored --
+# it holds your email, and nothing personal belongs in the repo.
+
+# Required. Budget alerts go here. AWS sends a subscription confirmation the
+# first time; the alarm does nothing until you accept it.
+budget_notification_email = "you@example.com"
+
+# Optional -- defaults shown.
+# project_name       = "wa-mining"
+# region             = "ap-southeast-2"
+# monthly_budget_usd = 5
+
+# The seam. Today the API is still served by Netlify, so CloudFront proxies
+# /api/* there and the browser never makes a cross-origin request. When the
+# Lambda/API Gateway tier exists, change this to the API Gateway domain --
+# that is the entire migration, with no frontend rebuild.
+# api_origin_domain = "wa-mining.netlify.app"
+
+# PriceClass_100 (NA + Europe) is cheaper per GB but excludes Australia,
+# which is where this demo's audience is. Only worth changing if that stops
+# being true.
+# price_class = "PriceClass_All"
