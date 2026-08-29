@@ -89,6 +89,25 @@ The C#/Unity track (Viewport XR-aligned simulation showcase + freelance portfoli
 - ~~Story: Ship the link: WebGL build published at a shareable URL (WMDP2-73)~~ — **Done, on the board** (2026-07-22). Unity 6 headless WebGL build (32 MB, 0 errors, built by the committed `WebGLBuildScript.cs`) live at **https://wa-mining-unity.netlify.app** on its own dedicated Netlify site; verified in production with Playwright (scene render + marker click → correct MINEDEX record); cross-linked from the prototype README (with the build/deploy runbook) and the root README's Related Experiments. The editor-pin reversal (2022.3 → Unity 6) and the four-failure module-install saga are documented in the prototype's DECISIONS.md and TROUBLESHOOTING_LOG.md #3.
 - ~~Story: Inspection Round scenario — increments I1+I2 (WMDP2-74)~~ — **Done, on the board** (2026-07-24; spec approved 2026-07-22). I1 (`dc09417`): pure-C# `InspectionRound` core, 23 EditMode tests green headless. I2 (`612e2bd`, `d7a1c93`, `973fce6`): the playable loop — briefing, two-step flag decisions with reasons, progress HUD, end-of-shift report with the caught/missed verdict, restart — generated and wired by the committed idempotent `ScenarioUiBuilder`, with the orbit-camera click-through bug fixed via an EventSystem pointer guard. Verified with a full-loop Playwright click-through of the built WebGL output, then redeployed to **wa-mining-unity.netlify.app** (production spot-check green). The spec's I2 milestone merge landed the same sitting: owner approved at the gate, merged to main as `e8dfe95` (no-ff), CI green.
 
+## Board sync log (2026-08-16b) — AWS direction change
+
+The AWS work is being restarted around **showing architecture rather than showing presence**, using the SAA-C03 material. `DEPLOYMENT.md`'s single-EC2 + docker-compose runbook is complete and still valid, and it stays in the repo — but one instance running containers exercises none of the exam's four domains, so it is the wrong vehicle for this particular goal.
+
+Three blocks were scoped; **block A** (edge delivery) is built and committed as `infra/` in `520e6b1`, unapplied. Block C (S3 + Glue + Athena over the MINEDEX data — cheap, and the differentiator for a data project) and block B (Lambda + API Gateway + Postgres in private subnets) follow, in that order, because B carries all the cost risk.
+
+**The load-bearing design decision** is that the CloudFront distribution has two origins: the bucket, and the API. The browser only ever talks to the CloudFront domain, so there is no cross-origin request and **no CORS configuration anywhere** — which works without touching application code, because `client.ts` already falls back to `window.location.origin`. Today `/api/*` proxies to the live Netlify deployment, so block A delivers the whole working app rather than a static shell; when the Lambda tier lands, one Terraform variable changes and the frontend never knows.
+
+**No ALB and no NAT Gateway anywhere, deliberately** — roughly $16 and $32 a month, billed hourly whether used or not, neither in the free tier, and between them the usual source of a surprise portfolio bill.
+
+Board changes executed this sitting:
+
+- **WMDP2-18 re-scoped** from "Provision AWS infrastructure" (EC2, security group, Docker) to **"Provision the AWS edge stack with Terraform (S3 + CloudFront + budget)"**. New description and a comment carrying the reasoning. Stays flagged and To Do — the blocker moved from "no AWS credentials" to "no AWS account".
+- **WMDP2-19 re-scoped** from "Deploy and verify on EC2" to **"Deploy the frontend to CloudFront and verify the API seam"**, with four named acceptance checks. The `?sort=bogus` one matters most: it fails if the SPA-rewrite function was attached to the wrong behaviour and is silently turning API 422s into the app shell with status 200 — a distribution that looks perfectly healthy while quietly breaking error handling.
+- **Both keep their story numbers and their place under AWS Cloud Deployment.** Renumbering would have thrown away the July history, including the blocked-on-credentials trail.
+- **Subtasks WMDP2-36/37/38 deliberately untouched.** 36 (Free Tier eligibility, budget alert) is still valid and arguably more central now. 37 (launch EC2) and 38 (install Docker) are superseded and describe work that will not happen. Closing them as won't-do or re-scoping them to the apply/verify steps is an owner call; deleting board history unilaterally is not.
+
+Netlify stays live throughout — this is a second deployment, not a migration.
+
 ## Board sync log (2026-08-16)
 
 **WMDP2-77 → Done.** The `INITCAP` conjunction defect is fixed and pushed: `a93a40b` (the coupled SQL + data + code fix), `eb50b31` (docs retiring the defect they had recorded as open), `4adbba2` (a stale-lockfile fix in the `unity-webgl-release` skill, found while verifying). CI green on all four jobs. Closing comment on the story carries the verification and the two decisions worth keeping — the additive Netlify migration, and the deliberate refusal to concern-split a change whose intermediate states would each have been silently wrong.
